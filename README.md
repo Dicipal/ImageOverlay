@@ -1,0 +1,1 @@
+# Image Tracer Overlay extension for Google Chrome
