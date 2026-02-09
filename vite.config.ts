@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
 
 	if (mode === 'production') {
 		config.build = {
-			outDir: resolve(__dirname, 'public'),
+			outDir: resolve(__dirname, 'dist'),
 			emptyOutDir: false,
 			lib: {
 				entry: resolve(__dirname, 'src/main.ts'),

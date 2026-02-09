@@ -8,6 +8,7 @@
 			<ControlFieldGroup>
 				<ImagePicker @change="imageSrc = $event" />
 				<ImageFetcher @change="imageSrc = $event" />
+				<ImageAgent @change="imageSrc = $event" />
 			</ControlFieldGroup>
 
 			<ControlFieldGroup>
@@ -47,6 +48,7 @@ import ControlFieldGroup from './components/ControlFieldGroup.vue'
 import TracerImage from './components/TracerImage.vue'
 import ImagePicker from './components/ImagePicker.vue'
 import ImageFetcher from './components/ImageFetcher.vue'
+import ImageAgent from './components/ImageAgent.vue'
 import RangeField from './components/RangeField.vue'
 import TextButton from './components/TextButton.vue'
 import SwitchField from './components/SwitchField.vue'
@@ -61,6 +63,13 @@ const imageSrc = ref<string | undefined>(undefined)
 
 function clearImage() {
 	imageSrc.value = undefined
+
+	// Notify ImageAgent to reset its state (results, index, status, input)
+	try {
+		window.dispatchEvent(new CustomEvent('ito:clear-image'))
+	} catch (err) {
+		console.warn('Failed to dispatch ito:clear-image event', err)
+	}
 }
 
 function resetImage() {
