@@ -16,9 +16,9 @@
 			</ControlFieldGroup>
 
 			<ControlFieldGroup>
-				<RangeField :label="`Opacity ${opacity}`" :min="0" :max="100" v-model="opacity" />
-				<RangeField :label="`Scale ${scale}x`" :min="1" :max="800" v-model="scale" />
-				<RangeField :label="`Rotate ${rotation}deg`" :min="-36000" :max="36000" v-model="rotation" />
+				<RangeField label="Opacity" :min="0" :max="1" :step="0.01" v-model="opacity" />
+				<RangeField label="Scale" :min="0.1" :max="5" :step="0.01" v-model="scale" />
+				<RangeField label="Rotate" :min="0" :max="360" :step="1" v-model="rotation" />
 			</ControlFieldGroup>
 
 			<ControlFieldGroup v-if="imageSrc">
@@ -63,8 +63,6 @@ const imageSrc = ref<string | undefined>(undefined)
 
 function clearImage() {
 	imageSrc.value = undefined
-
-	// Notify ImageAgent to reset its state (results, index, status, input)
 	try {
 		window.dispatchEvent(new CustomEvent('ito:clear-image'))
 	} catch (err) {
@@ -87,6 +85,7 @@ watch(isAttached, () => {
 <style>
 #ImageTracerOverlayMount {
 	display: block !important;
+	color: var(--text-color);
 	font-family:
 		system-ui,
 		-apple-system,
@@ -111,6 +110,11 @@ watch(isAttached, () => {
 :root {
 	--image-tracer-overlay-attached-x: 0px;
 	--image-tracer-overlay-attached-y: 0px;
+	--main-bg: #ffffff;
+	--secondary-bg: #f8f9fa;
+	--accent-color: #06b6d4;
+	--accent-text: #ffffff;
+	--text-color: #333333;
 }
 </style>
 
@@ -137,7 +141,8 @@ watch(isAttached, () => {
 
 .ito-menu-helper {
 	font-size: 10px;
-	color: #64748b;
+	color: var(--text-color);
+	opacity: 0.8;
 }
 
 .ito-text-buttons-group {

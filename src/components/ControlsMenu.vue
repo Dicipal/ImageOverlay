@@ -2,6 +2,9 @@
 	<div class="ito-controls-menu">
 		<Transition name="ito-menu-transition" mode="out-in">
 			<div v-show="showControls" class="ito-controls-menu-content">
+				<div class="ito-controls-menu-header">
+					<SettingsMenu />
+				</div>
 				<slot />
 
 				<div class="ito-controls-menu-content-footer">
@@ -20,6 +23,7 @@
 
 <script setup lang="ts">
 import { useControls } from '../composables/useControls'
+import SettingsMenu from './SettingsMenu.vue'
 
 const { showControls, toggleShowControls } = useControls()
 </script>
@@ -43,7 +47,7 @@ const { showControls, toggleShowControls } = useControls()
 	width: 48px;
 	border-radius: 24px;
 	cursor: pointer;
-	background-color: #0ea5e9;
+	background-color: var(--accent-color);
 	color: white;
 	outline: #99a1bc4a solid 4px;
 	background-image: url('../assets/icon.png');
@@ -56,20 +60,20 @@ const { showControls, toggleShowControls } = useControls()
 }
 
 .ito-controls-menu-activator:hover {
-	background-color: #0284c7;
+	background-color: color-mix(in srgb, var(--accent-color) 80%, black);
 }
 
 .ito-controls-menu-activator--active {
-	background-color: white;
+	background-color: var(--main-bg);
 	outline: #cbd5e1 solid 4px;
 }
 
 .ito-controls-menu-activator--active:hover {
-	background-color: #cbd5e1;
+	background-color: var(--secondary-bg);
 }
 
 .ito-controls-menu-activator--active:focus {
-	background-color: white;
+	background-color: var(--main-bg);
 }
 
 .ito-controls-menu-content {
@@ -83,8 +87,15 @@ const { showControls, toggleShowControls } = useControls()
 	transform-origin: calc(100% - 40px) calc(100% - 40px);
 	padding: 16px 16px 80px;
 	border-radius: 24px;
-	background-color: white;
+	background-color: var(--main-bg);
 	outline: #99a1bc4a solid 4px;
+}
+
+.ito-controls-menu-header {
+	display: flex;
+	justify-content: flex-end;
+	padding: 0;
+	margin: 0 0 8px 0;
 }
 
 .ito-controls-menu-content-footer {
@@ -110,6 +121,6 @@ const { showControls, toggleShowControls } = useControls()
 .ito-menu-transition-leave-to {
 	opacity: 0;
 	transform: scale(0, 0);
-	background-color: white;
+	background-color: var(--main-bg);
 }
 </style>

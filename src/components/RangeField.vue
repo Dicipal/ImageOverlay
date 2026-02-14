@@ -1,13 +1,28 @@
 <template>
-	<ControlField :label="label">
-		<input
-			type="range"
-			class="ito-range-control"
-			:min="props.min"
-			:max="props.max"
-			:value="computedValue"
-			@input="onInput"
-		/>
+	<ControlField>
+		<div class="control-group">
+			<div class="label-row">
+				<span class="label-text">{{ label }}</span>
+				<input
+					type="number"
+					v-model.number="model"
+					@focus="onInputFocus"
+					@blur="clampValue"
+					class="stealth-input"
+					:step="step"
+					:min="min"
+					:max="max"
+				/>
+			</div>
+			<input
+				type="range"
+				v-model.number="model"
+				:min="min"
+				:max="max"
+				:step="step"
+				class="custom-slider"
+			/>
+		</div>
 	</ControlField>
 </template>
 
@@ -24,32 +39,99 @@ const props = defineProps<{
 	modelValue: number
 	min: number
 	max: number
+	step?: number
 }>()
 
-const computedValue = computed(() => props.modelValue * 100)
+const model = computed({
+	get: () => props.modelValue,
+	set: (value: number) => emit('update:modelValue', value),
+})
 
-function onInput(event: Event) {
-	const target = event.target as HTMLInputElement
+const step = computed(() => props.step ?? 0.01)
 
-	emit('update:modelValue', Number(target.value) / 100)
+const clampValue = () => {
+	const value = Number(model.value)
+	if (Number.isNaN(value)) return
+	const clamped = Math.min(Math.max(value, props.min), props.max)
+	if (clamped !== value) {
+		model.value = clamped
+	}
+}
+
+const onInputFocus = (event: FocusEvent) => {
+	const target = event.target as HTMLInputElement | null
+	if (target) {
+		target.select()
+	}
 }
 </script>
 
 <style scoped>
-.ito-range-control {
+
+.control-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.label-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 4px;
+}
+
+.label-text {
+	font-size: 0.8rem;
+	font-weight: 500;
+	color: var(--text-color);
+	opacity: 0.9;
+}
+
+.stealth-input {
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid transparent;
+	color: var(--text-color);
+	text-align: right;
+	width: 56px;
+	font-family: inherit;
+	font-size: 0.8rem;
+	outline: none;
+	padding: 0 2px;
+	transition: all 0.2s ease;
+}
+
+.stealth-input:hover,
+.stealth-input:focus {
+	border-bottom: 1px solid var(--accent-color);
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.stealth-input::-webkit-outer-spin-button,
+.stealth-input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.stealth-input[type='number'] {
+	-moz-appearance: textfield;
+}
+
+.custom-slider {
 	width: 100%;
 	margin: 0;
 	padding: 0;
 	border: 0;
 }
 
-.ito-range-control {
+.custom-slider {
 	font-size: 1.5rem;
 	width: 100%;
 }
 
-.ito-range-control {
-	color: #0ea5e9;
+.custom-slider {
+	color: var(--accent-color);
 	--thumb-height: 0.8em;
 	--track-height: 0.125em;
 	--track-color: #cbd5e1;
@@ -58,30 +140,30 @@ function onInput(event: Event) {
 	--clip-edges: 0.125em;
 }
 
-.ito-range-control {
+.custom-slider {
 	position: relative;
 	background: #fff0;
 	overflow: hidden;
 }
 
-.ito-range-control:active {
+.custom-slider:active {
 	cursor: grabbing;
 }
 
-.ito-range-control,
-.ito-range-control::-webkit-slider-runnable-track,
-.ito-range-control::-webkit-slider-thumb {
+.custom-slider,
+.custom-slider::-webkit-slider-runnable-track,
+.custom-slider::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	transition: all ease 100ms;
 	height: var(--thumb-height);
 }
 
-.ito-range-control::-webkit-slider-runnable-track,
-.ito-range-control::-webkit-slider-thumb {
+.custom-slider::-webkit-slider-runnable-track,
+.custom-slider::-webkit-slider-thumb {
 	position: relative;
 }
 
-.ito-range-control::-webkit-slider-thumb {
+.custom-slider::-webkit-slider-thumb {
 	--thumb-radius: calc((var(--thumb-height) * 0.5) - 1px);
 	--clip-top: calc((var(--thumb-height) - var(--track-height)) * 0.5 - 0.5px);
 	--clip-bottom: calc(var(--thumb-height) - var(--clip-top));
@@ -107,17 +189,17 @@ function onInput(event: Event) {
 	);
 }
 
-.ito-range-control:hover::-webkit-slider-thumb {
+.custom-slider:hover::-webkit-slider-thumb {
 	filter: brightness(var(--brightness-hover));
 	cursor: grab;
 }
 
-.ito-range-control:active::-webkit-slider-thumb {
+.custom-slider:active::-webkit-slider-thumb {
 	filter: brightness(var(--brightness-down));
 	cursor: grabbing;
 }
 
-.ito-range-control::-webkit-slider-runnable-track {
+.custom-slider::-webkit-slider-runnable-track {
 	background: linear-gradient(var(--track-color) 0 0) scroll no-repeat center / 100% calc(var(--track-height) + 1px);
 }
 </style>

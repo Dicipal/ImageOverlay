@@ -28,7 +28,7 @@ defineProps<{
 .ito-control-field-label {
 	font-size: 12px;
 	margin-bottom: 4px;
-	color: #334155;
+	color: var(--text-color);
 	user-select: none;
 }
 

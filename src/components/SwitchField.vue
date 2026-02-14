@@ -36,7 +36,7 @@ defineProps<{
 	display: flex;
 	align-items: center;
 	font-size: 12px;
-	color: #334155;
+	color: var(--text-color);
 	user-select: none;
 	flex-grow: 1;
 }
@@ -58,8 +58,8 @@ defineProps<{
 }
 
 .ito-switch-button--on {
-	background-color: #06b6d4;
-	border-color: #06b6d4;
+	background-color: var(--accent-color);
+	border-color: var(--accent-color);
 }
 
 .ito-switch-button--on .ito-switch-knob {
@@ -72,7 +72,7 @@ defineProps<{
 	height: 18px;
 	width: 18px;
 	border-radius: 999px;
-	background-color: white;
-	border: 1px solid white;
+	background-color: var(--main-bg);
+	border: 1px solid var(--main-bg);
 }
 </style>

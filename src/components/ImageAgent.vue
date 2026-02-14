@@ -49,7 +49,6 @@ const customWord = ref('')
 const currentResults = ref<string[]>([])
 const currentIndex = ref<number>(0)
 
-/** Extract current skribbl.io word */
 function getSkribblWord(): string | null {
 	const wordElement = document.querySelector('.word')
 	if (wordElement?.textContent?.trim()) {
@@ -91,9 +90,6 @@ function navigateImage(step: number) {
 		})
 }
 
-/**
- * Auto-fill the input with the current skribbl.io word when component mounts
- */
 onMounted(() => {
 	const detectedWord = getSkribblWord()
 	if (detectedWord) {
@@ -197,8 +193,8 @@ async function fetchImage() {
 	font-size: 12px;
 	border-radius: 8px;
 	border: 1px solid #cbd5e1;
-	background-color: #06b6d4;
-	color: white;
+	background-color: var(--accent-color);
+	color: var(--accent-text);
 	cursor: pointer;
 	white-space: nowrap;
 	font-weight: 500;
@@ -207,7 +203,7 @@ async function fetchImage() {
 }
 
 .ito-agent-btn:hover:not(:disabled) {
-	background-color: #0891b2;
+	background-color: color-mix(in srgb, var(--accent-color) 80%, black);
 	box-shadow: 0 2px 4px rgba(6, 182, 212, 0.3);
 }
 
@@ -224,15 +220,15 @@ async function fetchImage() {
 	border-radius: 8px;
 	height: auto;
 	border: 1px solid #cbd5e1;
-	background-color: white;
+	background-color: var(--main-bg);
 	width: 100%;
 	flex: 1;
 }
 
 .ito-input-control:focus:not(:disabled) {
 	outline: none;
-	box-shadow: inset 0 0 0 1px #06b6d4;
-	border-color: #06b6d4;
+	box-shadow: inset 0 0 0 1px var(--accent-color);
+	border-color: var(--accent-color);
 }
 
 .ito-input-control:disabled {
@@ -274,7 +270,6 @@ async function fetchImage() {
 	margin-left: 8px;
 }
 
-/* Column layout: input on its own row, buttons on a second row */
 .ito-image-agent-controls.column {
 	display: flex;
 	flex-direction: column;
