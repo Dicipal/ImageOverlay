@@ -34,7 +34,7 @@
 
 			<template #footer>
 				<div class="ito-menu-helper">
-					Tips: Position the image by dragging. Ctrl+Scroll to change zoom. Shift+Scroll to rotate.
+					Tips: Position the image by dragging. Ctrl+Scroll to zoom. Shift+Scroll to rotate. Alt+V to toggle visibility.
 				</div>
 			</template>
 		</ControlsMenu>
@@ -66,7 +66,6 @@ function clearImage() {
 	try {
 		window.dispatchEvent(new CustomEvent('ito:clear-image'))
 	} catch (err) {
-		console.warn('Failed to dispatch ito:clear-image event', err)
 	}
 }
 

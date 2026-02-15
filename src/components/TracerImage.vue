@@ -16,7 +16,7 @@ import type { StyleValue } from 'vue'
 import { useControls } from '../composables/useControls'
 import { useElementDrag } from '../composables/useElementDrag'
 
-const { showControls, scale, opacity, rotation, isAttached } = useControls()
+const { showControls, scale, opacity, rotation, isAttached, overlayVisible } = useControls()
 const { elementDrag, dragEvents } = useElementDrag()
 
 const props = defineProps<{
@@ -57,10 +57,11 @@ function onWheelEvent(event: WheelEvent) {
 }
 
 const computedTransform = computed<StyleValue>(() => {
+	const isVisible = overlayVisible.value
 	return {
-		opacity: opacity.value,
-		cursor: showControls.value && !isAttached.value ? 'grab' : undefined,
-		pointerEvents: showControls.value && !isAttached.value ? 'auto' : undefined,
+		opacity: isVisible ? opacity.value : 0,
+		cursor: isVisible && showControls.value && !isAttached.value ? 'grab' : undefined,
+		pointerEvents: isVisible && showControls.value && !isAttached.value ? 'auto' : 'none',
 		transform: `
 			translate3d(${elementDrag.currentX}px, ${elementDrag.currentY}px, 0) 
 			scale(${scale.value}, ${scale.value}) 

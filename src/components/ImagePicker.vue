@@ -26,7 +26,6 @@ async function onFileUpload(event: Event) {
 		emit('change', fileUrl)
 		target.value = ''
 	} catch (err) {
-		console.error('Failed to load file')
 	}
 }
 

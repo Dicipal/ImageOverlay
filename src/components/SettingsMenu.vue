@@ -139,6 +139,7 @@ const newPresetName = ref('')
 const presets = ref<Array<{ name: string; mainBg: string; accentColor: string }>>([])
 
 const presetStorageKey = 'ito-theme-presets'
+const activePresetStorageKey = 'ito-last-active-preset'
 
 const getContrastColor = (hexcolor: string): string => {
 	if (!hexcolor) return '#333333'
@@ -229,7 +230,65 @@ const savePresetsToStorage = () => {
 	try {
 		localStorage.setItem(presetStorageKey, JSON.stringify(presets.value))
 	} catch (err) {
-		console.warn('Failed to save presets', err)
+	}
+}
+
+const getStoredActivePreset = (): Promise<string | null> => {
+	const chromeStorage =
+		typeof window !== 'undefined'
+			? (window as Window & { chrome?: { storage?: { local?: any }; runtime?: { lastError?: unknown } } }).chrome
+					?.storage?.local
+			: undefined
+	if (chromeStorage) {
+		return new Promise((resolve) => {
+			try {
+				chromeStorage.get([activePresetStorageKey], (result: Record<string, unknown>) => {
+					const chromeRuntime = (window as Window & { chrome?: { runtime?: { lastError?: unknown } } }).chrome
+					if (chromeRuntime?.runtime?.lastError) {
+						resolve(null)
+						return
+					}
+					const value = result?.[activePresetStorageKey]
+					resolve(typeof value === 'string' ? value : null)
+				})
+			} catch (err) {
+				resolve(null)
+			}
+		})
+	}
+
+	try {
+		const value = localStorage.getItem(activePresetStorageKey)
+		return Promise.resolve(value || null)
+	} catch (err) {
+		return Promise.resolve(null)
+	}
+}
+
+const setStoredActivePreset = async (name: string | null) => {
+	const chromeStorage =
+		typeof window !== 'undefined'
+			? (window as Window & { chrome?: { storage?: { local?: any } } }).chrome?.storage?.local
+			: undefined
+	if (chromeStorage) {
+		try {
+			if (name) {
+				chromeStorage.set({ [activePresetStorageKey]: name })
+			} else {
+				chromeStorage.remove(activePresetStorageKey)
+			}
+		} catch (err) {
+		}
+		return
+	}
+
+	try {
+		if (name) {
+			localStorage.setItem(activePresetStorageKey, name)
+		} else {
+			localStorage.removeItem(activePresetStorageKey)
+		}
+	} catch (err) {
 	}
 }
 
@@ -242,8 +301,20 @@ const loadPresetsFromStorage = () => {
 			presets.value = parsed.filter((preset) => preset?.name && preset?.mainBg && preset?.accentColor)
 		}
 	} catch (err) {
-		console.warn('Failed to load presets', err)
 	}
+}
+
+const applyStoredPreset = async () => {
+	const storedName = await getStoredActivePreset()
+	if (!storedName) return
+	const match = presets.value.find(
+		(preset) => preset.name.toLowerCase() === storedName.toLowerCase()
+	)
+	if (match) {
+		applyTheme(match.mainBg, match.accentColor)
+		return
+	}
+	resetColors()
 }
 
 const savePreset = () => {
@@ -262,15 +333,21 @@ const savePreset = () => {
 	}
 	newPresetName.value = ''
 	savePresetsToStorage()
+	void setStoredActivePreset(name)
 }
 
 const loadPreset = (preset: { name: string; mainBg: string; accentColor: string }) => {
 	applyTheme(preset.mainBg, preset.accentColor)
+	void setStoredActivePreset(preset.name)
 }
 
-const deletePreset = (name: string) => {
+const deletePreset = async (name: string) => {
 	presets.value = presets.value.filter((preset) => preset.name !== name)
 	savePresetsToStorage()
+	const storedName = await getStoredActivePreset()
+	if (storedName && storedName.toLowerCase() === name.toLowerCase()) {
+		await setStoredActivePreset(null)
+	}
 }
 
 const resetColors = () => {
@@ -300,6 +377,7 @@ onMounted(() => {
 	accentInput.value = (accent || accentColor.value).toUpperCase()
 
 	loadPresetsFromStorage()
+	void applyStoredPreset()
 })
 </script>
 

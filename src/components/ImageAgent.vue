@@ -1,22 +1,25 @@
 <template>
-	<ControlField label="AI Image Fetch" :error="errorMessage">
+	<ControlField label="Image Fetch" :error="errorMessage">
 		<div class="ito-image-agent-controls column">
 			<input
 				v-model="customWord"
 				type="text"
-				:placeholder="customWord ? 'Press enter or click Auto' : 'Type a word here...'"
+				:placeholder="customWord ? 'Press enter or click Search' : 'Type a word here...'"
 				class="ito-input-control full-width"
-				@keydown.enter="fetchImage"
+				@input="onManualInput"
+				@focus="isInputFocused = true"
+				@blur="isInputFocused = false"
+				@keydown.enter="searchImage"
 				:disabled="isLoading"
 			/>
 
 			<div class="ito-button-row">
 				<button
 					class="ito-agent-btn"
-					@click="fetchImage"
+					@click="searchImage"
 					:disabled="isLoading"
 				>
-					{{ isLoading ? 'Fetching...' : '🤖 Auto' }}
+					{{ isLoading ? 'Fetching...' : '🔍 Search' }}
 				</button>
 
 				<div class="ito-nav-group">
@@ -45,29 +48,42 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const statusMessage = ref('')
 const customWord = ref('')
+const lastDetectedWord = ref('')
+let detectedWordInterval: number | undefined
+const isInputFocused = ref(false)
+const manualEditUntil = ref(0)
+const searchFilledWord = ref('')
+const manualClearUntil = ref(0)
 
 const currentResults = ref<string[]>([])
 const currentIndex = ref<number>(0)
 
+function getVisibleText(element: Element | null): string {
+	if (!element || !element.isConnected) return ''
+	const htmlElement = element as HTMLElement
+	const style = window.getComputedStyle(htmlElement)
+	if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return ''
+	if (htmlElement.offsetParent === null && style.position !== 'fixed') return ''
+	return htmlElement.textContent?.trim() || ''
+}
+
+function normalizeWord(text: string): string {
+	return text.replace(/_/g, '').replace(/\s\s+/g, ' ').trim()
+}
+
 function getSkribblWord(): string | null {
 	const wordElement = document.querySelector('.word')
-	if (wordElement?.textContent?.trim()) {
-		let word = wordElement.textContent.trim()
-		word = word.replace(/_/g, '').replace(/\s\s+/g, ' ').trim()
-		return word
-	}
+	const wordText = normalizeWord(getVisibleText(wordElement))
+	if (wordText) return wordText
 
-	const wordEl = document.querySelector('#currentWord')
-	if (wordEl?.textContent?.trim()) {
-		let word = wordEl.textContent.trim()
-		word = word.replace(/_/g, '').replace(/\s\+/g, ' ').trim()
-		return word
-	}
+	const currentWordElement = document.querySelector('#currentWord')
+	const currentWordText = normalizeWord(getVisibleText(currentWordElement))
+	if (currentWordText) return currentWordText
 
-	const fallbackSelectors = ['[class*="prompt"]', '.phone-input', '[data-word]']
-	for (const selector of fallbackSelectors) {
-		const element = document.querySelector(selector)
-		if (element?.textContent?.trim()) return element.textContent.trim()
+	const dataWordElement = document.querySelector('[data-word]') as HTMLElement | null
+	if (dataWordElement && dataWordElement.dataset.word) {
+		const dataWord = normalizeWord(dataWordElement.dataset.word)
+		if (dataWord) return dataWord
 	}
 
 	return null
@@ -90,15 +106,58 @@ function navigateImage(step: number) {
 		})
 }
 
-onMounted(() => {
+function syncDetectedWord() {
 	const detectedWord = getSkribblWord()
-	if (detectedWord) {
-		customWord.value = detectedWord
+	const now = Date.now()
+	const trimmedCustom = customWord.value.trim()
+
+	if (!detectedWord) {
+		if (searchFilledWord.value && trimmedCustom === searchFilledWord.value) {
+			customWord.value = ''
+			searchFilledWord.value = ''
+			lastDetectedWord.value = ''
+			return
+		}
+		if (!trimmedCustom && !isInputFocused.value && now > manualEditUntil.value) {
+			customWord.value = ''
+			searchFilledWord.value = ''
+			lastDetectedWord.value = ''
+		}
+		return
 	}
+
+	if (
+		!trimmedCustom &&
+		!isInputFocused.value &&
+		now > manualEditUntil.value &&
+		now > manualClearUntil.value
+	) {
+		customWord.value = detectedWord
+		searchFilledWord.value = detectedWord
+		lastDetectedWord.value = detectedWord
+	}
+}
+
+function onManualInput() {
+	const now = Date.now()
+	manualEditUntil.value = now + 2000
+	searchFilledWord.value = ''
+	if (!customWord.value.trim()) {
+		manualClearUntil.value = now + 5000
+		lastDetectedWord.value = ''
+	}
+}
+
+onMounted(() => {
+	syncDetectedWord()
+	detectedWordInterval = window.setInterval(syncDetectedWord, 500)
 	window.addEventListener('ito:clear-image', resetAgentState)
 })
 
 onUnmounted(() => {
+	if (detectedWordInterval !== undefined) {
+		window.clearInterval(detectedWordInterval)
+	}
 	window.removeEventListener('ito:clear-image', resetAgentState)
 })
 
@@ -107,16 +166,28 @@ function resetAgentState() {
 	currentIndex.value = 0
 	statusMessage.value = ''
 	customWord.value = ''
+	lastDetectedWord.value = ''
+	searchFilledWord.value = ''
+	manualClearUntil.value = 0
 	errorMessage.value = ''
 }
 
-async function fetchImage() {
+async function searchImage() {
 	errorMessage.value = ''
 	statusMessage.value = ''
 
 	const manualWord = customWord.value.trim()
 	const liveWord = getSkribblWord()
-	const word = manualWord ? manualWord : liveWord
+	let word = ''
+	if (manualWord) {
+		const isSearchFilled = searchFilledWord.value && manualWord === searchFilledWord.value
+		if (!isSearchFilled || liveWord) {
+			word = manualWord
+		}
+	}
+	if (!word && liveWord) {
+		word = liveWord
+	}
 
 	if (!word) {
 		errorMessage.value = 'Could not detect word. Type it manually.'
@@ -165,13 +236,11 @@ async function fetchImage() {
 		const firstUrl = currentResults.value[0]
 		await loadFileUrl(firstUrl)
 		emit('change', firstUrl)
-		customWord.value = ''
 		statusMessage.value = `1 / ${currentResults.value.length}`
 		setTimeout(() => {
 			statusMessage.value = ''
 		}, 2000)
 	} catch (err) {
-		console.error('Image agent error:', err)
 		errorMessage.value = 'Failed to fetch image. Try another word.'
 	} finally {
 		isLoading.value = false
@@ -192,7 +261,9 @@ async function fetchImage() {
 	margin: 0;
 	font-size: 12px;
 	border-radius: 8px;
-	border: 1px solid #cbd5e1;
+	border: none;
+	outline: none;
+	box-shadow: none;
 	background-color: var(--accent-color);
 	color: var(--accent-text);
 	cursor: pointer;
@@ -200,6 +271,13 @@ async function fetchImage() {
 	font-weight: 500;
 	transition: all 0.2s;
 	flex-shrink: 0;
+}
+
+.ito-agent-btn:focus,
+.ito-agent-btn:focus-visible,
+.ito-agent-btn:active {
+	outline: none;
+	box-shadow: none;
 }
 
 .ito-agent-btn:hover:not(:disabled) {
