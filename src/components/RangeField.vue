@@ -105,7 +105,7 @@ const onInputFocus = (event: FocusEvent) => {
 .stealth-input:hover,
 .stealth-input:focus {
 	border-bottom: 1px solid var(--accent-color);
-	background: rgba(255, 255, 255, 0.05);
+	background: var(--field-hover-bg);
 }
 
 .stealth-input::-webkit-outer-spin-button,
@@ -134,7 +134,7 @@ const onInputFocus = (event: FocusEvent) => {
 	color: var(--accent-color);
 	--thumb-height: 0.8em;
 	--track-height: 0.125em;
-	--track-color: #cbd5e1;
+	--track-color: var(--slider-track-color);
 	--brightness-hover: 120%;
 	--brightness-down: 80%;
 	--clip-edges: 0.125em;
@@ -142,7 +142,7 @@ const onInputFocus = (event: FocusEvent) => {
 
 .custom-slider {
 	position: relative;
-	background: #fff0;
+	background: transparent;
 	overflow: hidden;
 }
 

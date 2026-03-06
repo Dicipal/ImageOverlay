@@ -11,6 +11,6 @@
 	width: 100%;
 	padding: 12px 8px;
 	border-radius: 16px;
-	border: 1px solid #cbd5e1;
+	border: 1px solid var(--panel-border);
 }
 </style>

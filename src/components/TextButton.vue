@@ -19,12 +19,12 @@ defineProps<{
 	font-weight: 700;
 	text-align: center;
 	cursor: pointer;
-	color: #b91c1c;
+	color: var(--danger-color);
 	user-select: none;
 	flex-grow: 1;
 }
 
 .ito-text-button:hover {
-	color: #991b1b;
+	color: var(--danger-hover);
 }
 </style>

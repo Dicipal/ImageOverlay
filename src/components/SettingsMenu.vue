@@ -11,24 +11,24 @@
 				<div class="ito-settings-header">
 					<div class="ito-settings-tabs">
 						<button
-							:class="['ito-settings-tab', { 'ito-settings-tab--active': activeTab === 'settings' }]"
-							@click="activeTab = 'settings'"
+							:class="['ito-settings-tab', { 'ito-settings-tab--active': activeTab === 'general' }]"
+							@click="activeTab = 'general'"
 							type="button"
 						>
-							Settings
+							General
 						</button>
 						<button
-							:class="['ito-settings-tab', { 'ito-settings-tab--active': activeTab === 'themes' }]"
-							@click="activeTab = 'themes'"
+							:class="['ito-settings-tab', { 'ito-settings-tab--active': activeTab === 'appearance' }]"
+							@click="activeTab = 'appearance'"
 							type="button"
 						>
-							Themes
+							Appearance
 						</button>
 					</div>
 					<button class="ito-settings-close" @click="showSettings = false">×</button>
 				</div>
 
-				<div class="ito-settings-content" v-if="activeTab === 'settings'">
+				<div class="ito-settings-content" v-if="activeTab === 'general'">
 					<div class="ito-color-field">
 						<label for="main-bg-color">Main Background</label>
 						<div class="ito-color-input-wrapper">
@@ -85,7 +85,25 @@
 				</div>
 
 				<div class="ito-settings-content" v-else>
+					<div class="ito-theme-section">
+						<div class="ito-theme-section-title">UI Themes</div>
+						<div class="ito-theme-options">
+							<button
+								v-for="theme in uiThemes"
+								:key="theme.id"
+								:class="['ito-theme-option', { 'ito-theme-option--active': activeUiTheme === theme.id }]"
+								@click="setUiTheme(theme.id)"
+								type="button"
+							>
+								{{ theme.label }}
+							</button>
+						</div>
+					</div>
+
+					<div class="ito-theme-divider"></div>
+
 					<div class="ito-theme-manager">
+						<div class="ito-theme-section-title">Custom Presets</div>
 						<label for="ito-theme-name">New Preset Name</label>
 						<div class="ito-theme-row">
 							<input
@@ -130,16 +148,26 @@
 import { ref, onMounted } from 'vue'
 
 const showSettings = ref(false)
-const activeTab = ref<'settings' | 'themes'>('settings')
+type UiThemeId = 'default' | 'neon' | 'glass'
+
+const activeTab = ref<'general' | 'appearance'>('general')
 const mainBgColor = ref('#ffffff')
 const accentColor = ref('#06b6d4')
 const mainBgInput = ref('#ffffff')
 const accentInput = ref('#06b6d4')
 const newPresetName = ref('')
 const presets = ref<Array<{ name: string; mainBg: string; accentColor: string }>>([])
+const activeUiTheme = ref<UiThemeId>('default')
+
+const uiThemes: Array<{ id: UiThemeId; label: string }> = [
+	{ id: 'default', label: 'Default' },
+	{ id: 'neon', label: 'Neon' },
+	{ id: 'glass', label: 'Glass' },
+]
 
 const presetStorageKey = 'ito-theme-presets'
 const activePresetStorageKey = 'ito-last-active-preset'
+const uiThemeStorageKey = 'ito-ui-theme'
 
 const getContrastColor = (hexcolor: string): string => {
 	if (!hexcolor) return '#333333'
@@ -176,8 +204,10 @@ const updateAccentText = () => {
 
 const updateMainBg = () => {
 	handleColorChange('--main-bg', mainBgColor.value)
-	const textColor = getContrastColor(mainBgColor.value)
-	handleColorChange('--text-color', textColor)
+	if (activeUiTheme.value === 'default') {
+		const textColor = getContrastColor(mainBgColor.value)
+		handleColorChange('--text-color', textColor)
+	}
 	mainBgInput.value = mainBgColor.value.toUpperCase()
 }
 
@@ -220,7 +250,9 @@ const applyTheme = (mainBg: string, accent: string) => {
 	accentColor.value = accent
 	handleColorChange('--main-bg', mainBg)
 	handleColorChange('--accent-color', accent)
-	handleColorChange('--text-color', getContrastColor(mainBg))
+	if (activeUiTheme.value === 'default') {
+		handleColorChange('--text-color', getContrastColor(mainBg))
+	}
 	updateAccentText()
 	mainBgInput.value = mainBg.toUpperCase()
 	accentInput.value = accent.toUpperCase()
@@ -263,6 +295,71 @@ const getStoredActivePreset = (): Promise<string | null> => {
 	} catch (err) {
 		return Promise.resolve(null)
 	}
+}
+
+const getStoredUiTheme = (): Promise<UiThemeId | null> => {
+	const chromeStorage =
+		typeof window !== 'undefined'
+			? (window as Window & { chrome?: { storage?: { local?: any }; runtime?: { lastError?: unknown } } }).chrome
+					?.storage?.local
+			: undefined
+	if (chromeStorage) {
+		return new Promise((resolve) => {
+			try {
+				chromeStorage.get([uiThemeStorageKey], (result: Record<string, unknown>) => {
+					const chromeRuntime = (window as Window & { chrome?: { runtime?: { lastError?: unknown } } }).chrome
+					if (chromeRuntime?.runtime?.lastError) {
+						resolve(null)
+						return
+					}
+					const value = result?.[uiThemeStorageKey]
+					resolve(typeof value === 'string' ? (value as UiThemeId) : null)
+				})
+			} catch (err) {
+				resolve(null)
+			}
+		})
+	}
+
+	try {
+		const value = localStorage.getItem(uiThemeStorageKey)
+		return Promise.resolve((value as UiThemeId) || null)
+	} catch (err) {
+		return Promise.resolve(null)
+	}
+}
+
+const setStoredUiTheme = async (themeId: UiThemeId) => {
+	const chromeStorage =
+		typeof window !== 'undefined'
+			? (window as Window & { chrome?: { storage?: { local?: any } } }).chrome?.storage?.local
+			: undefined
+	if (chromeStorage) {
+		try {
+			chromeStorage.set({ [uiThemeStorageKey]: themeId })
+		} catch (err) {
+		}
+		return
+	}
+
+	try {
+		localStorage.setItem(uiThemeStorageKey, themeId)
+	} catch (err) {
+	}
+}
+
+const setUiTheme = (themeId: UiThemeId) => {
+	activeUiTheme.value = themeId
+	const root = document.documentElement
+	if (themeId === 'default') {
+		root.removeAttribute('data-theme')
+		const textColor = getContrastColor(mainBgColor.value)
+		handleColorChange('--text-color', textColor)
+	} else {
+		root.setAttribute('data-theme', themeId)
+		root.style.removeProperty('--text-color')
+	}
+	void setStoredUiTheme(themeId)
 }
 
 const setStoredActivePreset = async (name: string | null) => {
@@ -355,7 +452,9 @@ const resetColors = () => {
 	accentColor.value = '#06b6d4'
 	handleColorChange('--main-bg', '#ffffff')
 	handleColorChange('--accent-color', '#06b6d4')
-	handleColorChange('--text-color', '#333333')
+	if (activeUiTheme.value === 'default') {
+		handleColorChange('--text-color', '#333333')
+	}
 	updateAccentText()
 	mainBgInput.value = '#FFFFFF'
 	accentInput.value = '#06B6D4'
@@ -378,6 +477,10 @@ onMounted(() => {
 
 	loadPresetsFromStorage()
 	void applyStoredPreset()
+	void getStoredUiTheme().then((storedTheme) => {
+		const match = uiThemes.find((theme) => theme.id === storedTheme)
+		setUiTheme(match?.id ?? 'default')
+	})
 })
 </script>
 
@@ -395,17 +498,17 @@ onMounted(() => {
 	width: 28px;
 	border-radius: 6px;
 	cursor: pointer;
-	background-color: transparent;
-	color: var(--text-color);
-	border: 1px solid var(--accent-color);
+	background-color: var(--button-ghost-bg);
+	color: var(--button-ghost-text);
+	border: 1px solid var(--button-border);
 	padding: 4px;
 	transition: all 0.2s;
 	flex-shrink: 0;
 }
 
 .ito-settings-button:hover {
-	background-color: var(--accent-color);
-	color: var(--accent-text);
+	background-color: var(--button-hover-bg);
+	color: var(--button-text);
 	transform: scale(1.1);
 }
 
@@ -422,13 +525,18 @@ onMounted(() => {
 	position: absolute;
 	top: calc(100% + 8px);
 	right: 0;
-	background-color: var(--main-bg);
-	border: 1px solid var(--accent-color);
+	background-color: var(--panel-bg);
+	border: 1px solid var(--panel-border);
 	border-radius: 8px;
 	padding: 12px;
 	min-width: 240px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	z-index: 1000;
+	box-shadow: var(--panel-shadow);
+	backdrop-filter: var(--panel-blur);
+	z-index: 10000;
+}
+
+:root[data-theme='glass'] .ito-settings-panel {
+	background-color: rgba(20, 20, 20, 0.95);
 }
 
 .ito-settings-header {
@@ -437,7 +545,8 @@ onMounted(() => {
 	align-items: center;
 	margin-bottom: 12px;
 	padding-bottom: 8px;
-	border-bottom: 1px solid var(--accent-color);
+	border-bottom: 1px solid var(--panel-border);
+	text-shadow: var(--panel-text-shadow);
 }
 
 .ito-settings-tabs {
@@ -455,6 +564,7 @@ onMounted(() => {
 	padding: 0 0 4px;
 	cursor: pointer;
 	border-bottom: 2px solid transparent;
+	text-shadow: var(--panel-text-shadow);
 }
 
 .ito-settings-tab--active {
@@ -492,6 +602,63 @@ onMounted(() => {
 	gap: 10px;
 }
 
+.ito-theme-section {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 16px;
+}
+
+.ito-theme-section-title {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--text-color);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	text-shadow: var(--panel-text-shadow);
+}
+
+.ito-theme-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.ito-theme-option {
+	padding: 6px 10px;
+	border-radius: 8px;
+	border: 1px solid var(--panel-border);
+	background-color: var(--panel-bg);
+	color: var(--text-color);
+	font-size: 10px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+	text-shadow: var(--panel-text-shadow);
+	min-width: 72px;
+	text-align: center;
+}
+
+.ito-theme-option:hover {
+	border-color: var(--button-border);
+	box-shadow: var(--shadow-soft);
+}
+
+.ito-theme-option--active {
+	border-color: var(--button-border);
+	border-width: 2px;
+	background-color: var(--button-hover-bg);
+	color: var(--button-text);
+	box-shadow: var(--button-shadow);
+}
+
+.ito-theme-divider {
+	height: 1px;
+	width: 100%;
+	background-color: var(--panel-border);
+	margin: 6px 0 14px;
+}
+
 .ito-theme-manager label {
 	font-size: 11px;
 	font-weight: 500;
@@ -508,8 +675,8 @@ onMounted(() => {
 	padding: 6px 8px;
 	font-size: 12px;
 	border-radius: 4px;
-	border: 1px solid var(--accent-color);
-	background-color: var(--main-bg);
+	border: 1px solid var(--input-border);
+	background-color: var(--input-bg);
 	color: var(--text-color);
 }
 
@@ -518,9 +685,9 @@ onMounted(() => {
 	font-size: 11px;
 	font-weight: 600;
 	border-radius: 4px;
-	border: 1px solid var(--accent-color);
-	background-color: var(--accent-color);
-	color: var(--accent-text);
+	border: 1px solid var(--button-border);
+	background-color: var(--button-bg);
+	color: var(--button-text);
 	cursor: pointer;
 }
 
@@ -541,7 +708,7 @@ onMounted(() => {
 	align-items: center;
 	padding: 6px 8px;
 	border-radius: 4px;
-	border: 1px solid var(--accent-color);
+	border: 1px solid var(--panel-border);
 }
 
 .ito-theme-name {
@@ -559,21 +726,21 @@ onMounted(() => {
 	font-size: 11px;
 	padding: 4px 6px;
 	border-radius: 4px;
-	border: 1px solid var(--accent-color);
+	border: 1px solid var(--button-border);
 	background-color: transparent;
 	color: var(--text-color);
 	cursor: pointer;
 }
 
 .ito-theme-load:hover {
-	background-color: var(--accent-color);
-	color: var(--accent-text);
+	background-color: var(--button-hover-bg);
+	color: var(--button-text);
 }
 
 .ito-theme-delete:hover {
-	background-color: #b91c1c;
-	border-color: #b91c1c;
-	color: white;
+	background-color: var(--danger-color);
+	border-color: var(--danger-color);
+	color: var(--danger-text);
 }
 
 .ito-theme-empty {
@@ -605,28 +772,28 @@ onMounted(() => {
 .ito-color-input {
 	width: 40px;
 	height: 32px;
-	border: 1px solid var(--accent-color);
+	border: 1px solid var(--input-border);
 	border-radius: 4px;
 	cursor: pointer;
 	transition: box-shadow 0.2s;
 }
 
 .ito-color-input:hover {
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--shadow-soft);
 }
 
 .ito-color-input:focus {
 	outline: none;
-	box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+	box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .ito-color-text-input {
 	flex: 1;
 	padding: 6px 8px;
 	border-radius: 4px;
-	border: 1px solid var(--accent-color);
-	background-color: var(--secondary-bg);
-	color: #000000;
+	border: 1px solid var(--input-border);
+	background-color: var(--input-bg);
+	color: var(--text-color);
 	font-size: 11px;
 	font-family: monospace;
 	text-transform: uppercase;
@@ -634,14 +801,14 @@ onMounted(() => {
 
 .ito-color-text-input:focus {
 	outline: none;
-	box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+	box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .ito-color-value {
 	font-size: 11px;
 	font-family: monospace;
 	padding: 4px 6px;
-	background-color: var(--secondary-bg);
+	background-color: var(--input-bg);
 	border-radius: 3px;
 	flex: 1;
 	text-align: center;
@@ -653,7 +820,7 @@ onMounted(() => {
 	font-size: 11px;
 	font-weight: 500;
 	background-color: transparent;
-	border: 1px solid var(--accent-color);
+	border: 1px solid var(--button-border);
 	border-radius: 4px;
 	cursor: pointer;
 	color: var(--text-color);
@@ -661,9 +828,9 @@ onMounted(() => {
 }
 
 .ito-settings-reset:hover {
-	background-color: var(--accent-color);
-	color: var(--accent-text);
-	border-color: var(--accent-color);
+	background-color: var(--button-hover-bg);
+	color: var(--button-text);
+	border-color: var(--button-border);
 }
 
 .ito-settings-transition-enter-active,

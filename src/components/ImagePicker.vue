@@ -38,15 +38,15 @@ function openFilePicker() {
 .ito-upload-button {
 	padding: 8px 12px;
 	font-size: 12px;
-	background-color: var(--accent-color);
+	background-color: var(--button-bg);
 	border-radius: 8px;
-	color: var(--accent-text);
+	color: var(--button-text);
 	font-weight: 700;
 	text-align: center;
 	cursor: pointer;
 }
 
 .ito-upload-button:hover {
-	background-color: color-mix(in srgb, var(--accent-color) 80%, black);
+	background-color: var(--button-hover-bg);
 }
 </style>

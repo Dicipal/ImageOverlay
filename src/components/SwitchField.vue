@@ -52,8 +52,8 @@ defineProps<{
 	flex-shrink: 0;
 	width: 40px;
 	height: 20px;
-	background-color: #cbd5e1;
-	border: 1px solid #cbd5e1;
+	background-color: var(--switch-off-bg);
+	border: 1px solid var(--switch-off-border);
 	border-radius: 999px;
 }
 
@@ -72,7 +72,7 @@ defineProps<{
 	height: 18px;
 	width: 18px;
 	border-radius: 999px;
-	background-color: var(--main-bg);
-	border: 1px solid var(--main-bg);
+	background-color: var(--switch-knob-bg);
+	border: 1px solid var(--switch-knob-bg);
 }
 </style>

@@ -35,6 +35,6 @@ defineProps<{
 .ito-control-field-error {
 	font-size: 12px;
 	margin-top: 4px;
-	color: #cc0000;
+	color: var(--error-color);
 }
 </style>

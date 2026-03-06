@@ -264,8 +264,8 @@ async function searchImage() {
 	border: none;
 	outline: none;
 	box-shadow: none;
-	background-color: var(--accent-color);
-	color: var(--accent-text);
+	background-color: var(--button-bg);
+	color: var(--button-text);
 	cursor: pointer;
 	white-space: nowrap;
 	font-weight: 500;
@@ -281,8 +281,8 @@ async function searchImage() {
 }
 
 .ito-agent-btn:hover:not(:disabled) {
-	background-color: color-mix(in srgb, var(--accent-color) 80%, black);
-	box-shadow: 0 2px 4px rgba(6, 182, 212, 0.3);
+	background-color: var(--button-hover-bg);
+	box-shadow: var(--button-shadow);
 }
 
 .ito-agent-btn:disabled {
@@ -297,25 +297,25 @@ async function searchImage() {
 	font-size: 12px;
 	border-radius: 8px;
 	height: auto;
-	border: 1px solid #cbd5e1;
-	background-color: var(--main-bg);
+	border: 1px solid var(--input-border);
+	background-color: var(--input-bg);
 	width: 100%;
 	flex: 1;
 }
 
 .ito-input-control:focus:not(:disabled) {
 	outline: none;
-	box-shadow: inset 0 0 0 1px var(--accent-color);
+	box-shadow: inset 0 0 0 1px var(--focus-ring);
 	border-color: var(--accent-color);
 }
 
 .ito-input-control:disabled {
 	opacity: 0.7;
-	background-color: #f1f5f9;
+	background-color: var(--input-disabled-bg);
 }
 
 .ito-input-control::placeholder {
-	color: #64748b;
+	color: var(--input-placeholder);
 }
 
 .ito-nav-btn {
@@ -324,17 +324,17 @@ async function searchImage() {
 	padding: 6px 8px;
 	margin-left: 4px;
 	border-radius: 6px;
-	color: white;
+	color: var(--button-text);
 	cursor: pointer;
 	font-weight: 600;
 }
 
 .ito-nav-btn.left {
-	background: #ff4d4d;
+	background: var(--nav-left-bg);
 }
 
 .ito-nav-btn.right {
-	background: #2ecc71;
+	background: var(--nav-right-bg);
 }
 
 .ito-nav-btn:disabled {
@@ -344,7 +344,7 @@ async function searchImage() {
 
 .ito-nav-counter {
 	font-size: 11px;
-	color: #64748b;
+	color: var(--muted-text);
 	margin-left: 8px;
 }
 
@@ -376,7 +376,7 @@ async function searchImage() {
 
 .ito-status-message {
 	font-size: 11px;
-	color: #10b981;
+	color: var(--success-color);
 	margin-top: 4px;
 	animation: fadeIn 0.3s ease-in;
 }

@@ -127,9 +127,9 @@ onUnmounted(() => {
 	width: 48px;
 	border-radius: 24px;
 	cursor: pointer;
-	background-color: var(--accent-color);
-	color: white;
-	outline: #99a1bc4a solid 4px;
+	background-color: var(--button-bg);
+	color: var(--button-text);
+	outline: var(--menu-outline) solid 4px;
 	background-image: url('../assets/icon.png');
 	background-size: 50%;
 	background-repeat: no-repeat;
@@ -140,12 +140,12 @@ onUnmounted(() => {
 }
 
 .ito-controls-menu-activator:hover {
-	background-color: color-mix(in srgb, var(--accent-color) 80%, black);
+	background-color: var(--button-hover-bg);
 }
 
 .ito-controls-menu-activator--active {
-	background-color: var(--main-bg);
-	outline: #cbd5e1 solid 4px;
+	background-color: var(--panel-bg);
+	outline: var(--menu-active-outline) solid 4px;
 }
 
 .ito-controls-menu-activator--active:hover {
@@ -153,7 +153,7 @@ onUnmounted(() => {
 }
 
 .ito-controls-menu-activator--active:focus {
-	background-color: var(--main-bg);
+	background-color: var(--panel-bg);
 }
 
 .ito-controls-menu-content {
@@ -167,8 +167,10 @@ onUnmounted(() => {
 	transform-origin: calc(100% - 40px) calc(100% - 40px);
 	padding: 16px 16px 80px;
 	border-radius: 24px;
-	background-color: var(--main-bg);
-	outline: #99a1bc4a solid 4px;
+	background-color: var(--panel-bg);
+	outline: var(--panel-outline) solid 4px;
+	box-shadow: var(--panel-shadow);
+	backdrop-filter: var(--panel-blur);
 }
 
 .ito-controls-menu-header {
@@ -188,17 +190,17 @@ onUnmounted(() => {
 	width: 28px;
 	border-radius: 6px;
 	cursor: pointer;
-	background-color: transparent;
-	color: var(--text-color);
-	border: 1px solid var(--accent-color);
+	background-color: var(--button-ghost-bg);
+	color: var(--button-ghost-text);
+	border: 1px solid var(--button-border);
 	padding: 4px;
 	transition: all 0.2s;
 	flex-shrink: 0;
 }
 
 .ito-visibility-button:hover {
-	background-color: var(--accent-color);
-	color: var(--accent-text);
+	background-color: var(--button-hover-bg);
+	color: var(--button-text);
 	transform: scale(1.1);
 }
 
@@ -234,6 +236,6 @@ onUnmounted(() => {
 .ito-menu-transition-leave-to {
 	opacity: 0;
 	transform: scale(0, 0);
-	background-color: var(--main-bg);
+	background-color: var(--panel-bg);
 }
 </style>

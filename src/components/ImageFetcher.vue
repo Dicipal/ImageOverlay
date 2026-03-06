@@ -56,19 +56,19 @@ async function onChange(event: Event) {
 	font-size: 12px;
 	border-radius: 8px;
 	height: auto;
-	border: 1px solid #cbd5e1;
-	background-color: var(--main-bg);
+	border: 1px solid var(--input-border);
+	background-color: var(--input-bg);
 	width: 100%;
 }
 
 .ito-input-control:focus {
 	outline: none;
-	box-shadow: inset 0 0 0 1px var(--accent-color);
+	box-shadow: inset 0 0 0 1px var(--focus-ring);
 	border-color: var(--accent-color);
 }
 
 .ito-input-control::placeholder {
-	color: #64748b;
+	color: var(--input-placeholder);
 }
 
 .ito-input-control,
